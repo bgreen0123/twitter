@@ -44,7 +44,14 @@
 <div id="userHomePage">...</div>
 
 <div id="tweetit">
-  <input type="text" id="tweet" placeholder="What's on your mind">
+  <nav class="navbar navbar-expandlg navbar-light bg-light">
+    <span class="navbar-brand mb-0 h1">Twitter</span>
+    <div class="btn-group" role="group">
+      <button id="fromFeedToHome" type="button" class="btn btn-dark">Home</button>
+      <button id="fromFeedTofeed" type="button" class="btn btn-dark">Feed</button> 
+    </div>
+  </nav>
+  <input type="text" id="tweet" class="pt-4" placeholder="What's on your mind">
   <button id="submit">Send Tweet</button>
   <button id="signOut">Sign Out</button>
   <ul id="feed"></ul>

@@ -34,7 +34,7 @@ h2{
 }
 
 body{
-  --bs-body-bg:var(--bs-gray-500);
+  background: linear-gradient(to right, rgba(251, 194, 235, 1), rgba(166, 193, 238, 1))
 }
 
 .gradient-custom-2 {

@@ -15,40 +15,42 @@ let signUp = ()=>{
   $("#signUpPage").show();
   
   $("#signedUp").on("click",evt=>{
-    var firstName = $("#firstName").val();
-    var lastName = $("#lastName").val();
+    var firstName = $("#firstName").val().trim();
+    var lastName = $("#lastName").val().trim();
     var email = $("#email").val();
     var newPass = $("#signUpPass").val();
-    var newUser = [firstName,lastName].join('_').toLowerCase();
+    var newUser = [firstName,lastName].join('_').toLowerCase(); 
     const fileReader = new FileReader();
     var theFile = $("#profilePic").prop('files')[0];
     fileReader.readAsArrayBuffer(theFile);
-    
-    fileReader.addEventListener("load", async (evt)=>{
-	    let profilePicData = fileReader.result;
-	    let storageRef = firebase.storage().ref();
-	    let storageDest = storageRef.child(theFile.name);
-	    storageDest.put(profilePicData, {
+
+        fileReader.addEventListener("load", async (evt)=>{
+	        let profilePicData = fileReader.result;
+	        let storageRef = firebase.storage().ref();
+	        let storageDest = storageRef.child(theFile.name);
+	        storageDest.put(profilePicData, {
 		    contentType:theFile.type,
-	    }).then(ss=>{
+	        }).then(ss=>{
 		    ss.ref.getDownloadURL().then((theURL)=>{
-			    console.log(theURL);
 			    firebase.auth().createUserWithEmailAndPassword(email, newPass).then((userCredential)=>{
-				    let user = userCredential.user;
-				    user.updateProfile({
-					    displayName: newUser,
-					    photoURL: theURL,
-				    });
-				    $("#signUpPage").hide();
-				    load(user);	
-			    }).catch((error)=>{
-				    var errorCode = error.code;
-				    console.log(errorCode);
-			    });
-		    });
-	    });
-    });
+			        console.log(theURL);
+        		        let user = userCredential.user;
+		    	        user.updateProfile({
+	    			    displayName: newUser,
+	    			    photoURL: theURL,
+			        });
+			        $("#signUpPage").hide();
+				loadUserPage(user);	
+		    	    }).catch((error)=>{
+	    			var errorCode = error.code;
+	    			console.log(errorCode);
+		    	    });
+
+		   });
+  	       });
+        });
   });
+
 }
   
 
@@ -93,7 +95,7 @@ let renderTweet = ((tObj)=>{
 	  <div id="atweet" class="card mx-auto" data-uuid="${tObj.key}" style="max-width: 540px;">
     <div class="row g-0">
       <div class="col-md-4">
-        <img src="${tObj.val().profilePic}" class="img-fluid rounded-start" alt="IMAGE">
+        <img src="${tObj.val().profilePic}" class="img-fluid rounded-start" alt="No Image">
       </div>
       <div class="col-md-8">
         <div class="card-body">
@@ -106,9 +108,10 @@ let renderTweet = ((tObj)=>{
     </div>
   </div>`);
 });
-     	
+
 let loadFeed = (()=>{
 	let tweetref = db.ref(`tweets`);
+
 	tweetref.on("child_added",ss=>{
 		renderTweet(ss);
 		$("#atweet").on("click", evt=>{
@@ -116,13 +119,46 @@ let loadFeed = (()=>{
 		});
 	});
 });
+
+
+let load = ((user)=>{
+	console.log(user);
+	$("#userHomePage").hide();
+	$("#tweetit").show();
+	loadFeed();
+	$("#submit").on("click", function(evt){
+		evt.preventDefault();
+		let name = user.displayName;
+		let msg = $("#tweet").val();
+
+		publish(user,msg, ()=>{
+			$("#tweet").val('');
+		});
+	});
+
+
+	$("#signOut").on("click",()=>{
+		signOut();
+	});
+
+	$("#fromFeedToHome").on("click",()=>{
+		$("#feed").html('');
+		$("#tweetit").hide();
+		loadUserPage(user);
+	});
+});
+
+
 let loadUserPage = ((user)=>{
 	$("#userHomePage").show();
+	console.log(user);
 	$("#userHomePage").html(`
 <nav class="navbar navbar-expandlg navbar-light bg-light">
   <span class="navbar-brand mb-0 h1">Twitter</span>
-  <button type="button" class="btn btn-dark">Home</button>
-  <button type="button" class="btn btn-dark">Feed</button> 
+  <div class="btn-group role="group>
+    <button id="fromHomeToHome" type="button" class="btn btn-dark">Home</button>
+    <button id="fromHomeToFeed" type="button" class="btn btn-dark">Feed</button> 
+  </div>
 </nav>
 
 <section class="h-100 gradient-custom-2">
@@ -172,25 +208,9 @@ let loadUserPage = ((user)=>{
     </div>
   </div>
 </section>`);
-});
 
-let load = ((user)=>{
-	console.log(user);
-	$("#tweetit").show();
-	loadFeed();
-	$("#submit").on("click", function(evt){
-		evt.preventDefault();
-		let name = user.displayName;
-		let msg = $("#tweet").val();
-
-		publish(user,msg, ()=>{
-			$("#tweet").val('');
-		});
-	});
-
-
-	$("#signOut").on("click",()=>{
-		signOut();
+	$("#fromHomeToFeed").on("click", ()=>{
+		load(user);
 	});
 });
 
