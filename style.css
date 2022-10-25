@@ -1,11 +1,38 @@
+#start{
+  text-align:center;
+}
+
+#signUpPage{
+  text-align:center;
+}
+
+#signInPage{
+  text-align:center;
+}
+
+#tweetit{
+  text-align:center;
+}
+
+#ask{
+  font-size:20px;
+}
+ 
+
+button{
+  color:red;
+  font-size:15px;
+}
+
 h1{
-  color:blue
+  color:var(--bs-blue)
 }
 
 h2{
-  color:IndianRed
+  color:var(--bs-red);
+  font-size:20px;
 }
 
 body{
-  background:lightblue
+  --bs-body-bg:var(--bs-gray-500);
 }

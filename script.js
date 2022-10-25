@@ -10,13 +10,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 let db = firebase.database();
 
-// let username = rtdb.ref(db, "/username/");
-// let password = rtdb.ref(db, "/password/");
-//let logins = rtdb.ref(db, "/logins/")
-// rtdb.onValue(titleRef, ss=>{
-//   alert(JSON.stringify(ss.val()));
-// });
-
 let signUp = ()=>{
   $("#start").hide();
   $("#signUpPage").show();
@@ -27,33 +20,22 @@ let signUp = ()=>{
     var email = $("#email").val();
     var newPass = $("#signUpPass").val();
     var newUser = [firstName,lastName].join('_').toLowerCase();
+    var profilePic = $("#profilePic");
     
-    // firebase.auth().onAuthStateChanged((user) => {
-    //   alert("Fired at page load");
-    //   if (user) {
-    //     alert("Winner Winner chicken dinner");
-    //   }
-    // });
-    
-    firebase.auth().createUserWithEmailAndPassword(email, newPass)
-      .then((userCredential)=>{
-        var user = userCredential.user;
-        user.updateProfile({
-          displayName: newUser
+    firebase.auth().createUserWithEmailAndPassword(email, newPass).then((userCredential)=>{
+        let user = userCredential.user;
+	user.updateProfile({
+          displayName: newUser,
+	  photoURL: profilePic
         });
-        console.log(user);
+	$("#signUpPage").hide();
+	load(user);	
+
     }).catch((error)=>{
       var errorCode = error.code;
       console.log(errorCode);
     });
-
-    $("#signUpPage").hide();
-    $("#signUpSuccess").html(`
-      <h1>Congrats! Your username is: ${newUser}</h1>
-      <h2>Welcome to Twitter:)</h2>
-    `);
-    $("#signUpSuccess").show();
-  })
+  });
 }
 
 let signIn = ()=>{
@@ -63,46 +45,84 @@ let signIn = ()=>{
     var email = $("#signInEmail").val();
     var pass = $("#signInPass").val();
 
-    firebase.auth().signInWithEmailAndPassword(email,pass)
-      .then(()=>{
-        $("#signInPage").hide();
-        $("#loginSuccess").show();
+    firebase.auth().signInWithEmailAndPassword(email,pass).then((userCredential)=>{
+        let user = userCredential.user;
+	$("#signInPage").hide();
+        load(user);
     })
     .catch((error)=>{
       var errorCode = error.code;
       if(errorCode=="auth/user-not-found"){
-        $("#signInPage").hide();
-        $("#signUpPage").show();
-        $("#signUpPage").prepend(`<h2>Looks like you aren't signed up yet!</h2>`)
-      }
-      else{
+        //$("#signUpPage").prepend(`<h2>Looks like you aren't signed up yet!</h2>`)
         $("#signInPage").append(`<h2>email or password is incorrect, please try again</h2>`);
-      }
       console.log(errorCode);
+      }
     });
-  // let loginRef = rtdb.ref(db,"/logins");
-  // rtdb.onValue(loginRef, ss=>{
-  //   //alert(JSON.stringify(ss.val()));
-  //   let loginObj = ss.val();
-  //   let theIDs = Object.keys(loginRef);
-  //   alert(theIDs.val())
-  //   theIDs.map(anId=>{
-  //     let theLogin = loginObj[anId];
-  //     if(theLogin.username == user){
-  //       alter(2);
-  //       $("#signInPage").hide();
-  //       $("#loginSuccess").show();
-  //     }else{
-  //       alert(3);
-  //       $("#signInPage").append(`
-  //       <h2>username or password is incorrect</h2>
-  //       `);
-  //     }
-  //   });
-  // });
- })
-}
+  });
+};
+    
+let signOut = ()=>{
+	$("#signInEmail").val('');
+	$("#signInPass").val('');
+	$("#feed").html('');
+	$("#tweetit").hide();
+	signIn();
+};
 
+let publish = function(user,msg,callback){
+	let msgref = db.ref(`tweets`);
+	tweetref = msgref.push();
+	tweetref.set({profilePic:user.photoURL,uid:user.uid,username:user.displayName,email:user.email,tweet:msg}).then(callback);
+};
+
+let renderTweet = ((tObj)=>{
+	$("#feed").prepend(`
+	<div id="atweet" class="card mx-auto" style="max-width: 540px;">
+  <div class="row g-0">
+    <div class="col-md-4">
+      <img src="${tObj.val().photoURL}" class="img-fluid rounded-start" alt="...">
+    </div>
+    <div class="col-md-8">
+      <div class="card-body">
+        <h5 class="card-title">${tObj.val().username}</h5>
+        <p class="card-text">${tObj.val().tweet}</p>
+        <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+      </div>
+    </div>
+  </div>
+</div>`);
+});
+     	
+let loadFeed = (()=>{
+	let tweetref = db.ref(`tweets`);
+	tweetref.on("child_added",ss=>{
+		renderTweet(ss);
+	});
+});
+
+let load = ((user)=>{
+	$("#signUpSuccess").hide();
+	$("#tweetit").show();
+	loadFeed();
+	$("#submit").on("click", function(evt){
+		evt.preventDefault();
+		let name = user.displayName;
+		let msg = $("#tweet").val();
+
+		publish(user,msg, ()=>{
+			$("#tweet").val('');
+		});
+	});
+
+
+	$("#atweet").on("click", evt=>{
+		alert($(evt.currentTarget).attr("id"));
+	});
+
+	$("#signOut").on("click",()=>{
+		signOut();
+	});
+});
 
 
 let startPage = ()=>{
@@ -110,6 +130,7 @@ let startPage = ()=>{
   $("#signInPage").hide();
   $("#loginSuccess").hide();
   $("#signUpSuccess").hide();
+  $("#tweetit").hide();
   $("#start").html(`
   <h1 id="start">Twitter!</h1>
   <p id="ask">Sign in or sign up if you are new!</p>
@@ -122,14 +143,9 @@ let startPage = ()=>{
   $("#signup").on("click",()=>{
     signUp();
   });
-}
+};
 
 startPage();
-
-
-
-
-
 
 // let tweets = [{"name":"Brendan","content":"Hello there","id":"uuid1"},
 //               {"name":"Brendan","content":"Hello there","id":"uuid2"},
