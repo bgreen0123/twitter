@@ -20,23 +20,37 @@ let signUp = ()=>{
     var email = $("#email").val();
     var newPass = $("#signUpPass").val();
     var newUser = [firstName,lastName].join('_').toLowerCase();
-    var profilePic = $("#profilePic");
+    const fileReader = new FileReader();
+    var theFile = $("#profilePic").prop('files')[0];
+    fileReader.readAsArrayBuffer(theFile);
     
-    firebase.auth().createUserWithEmailAndPassword(email, newPass).then((userCredential)=>{
-        let user = userCredential.user;
-	user.updateProfile({
-          displayName: newUser,
-	  photoURL: profilePic
-        });
-	$("#signUpPage").hide();
-	load(user);	
-
-    }).catch((error)=>{
-      var errorCode = error.code;
-      console.log(errorCode);
+    fileReader.addEventListener("load", async (evt)=>{
+	    let profilePicData = fileReader.result;
+	    let storageRef = firebase.storage().ref();
+	    let storageDest = storageRef.child(theFile.name);
+	    storageDest.put(profilePicData, {
+		    contentType:theFile.type,
+	    }).then(ss=>{
+		    ss.ref.getDownloadURL().then((theURL)=>{
+			    console.log(theURL);
+			    firebase.auth().createUserWithEmailAndPassword(email, newPass).then((userCredential)=>{
+				    let user = userCredential.user;
+				    user.updateProfile({
+					    displayName: newUser,
+					    photoURL: theURL,
+				    });
+				    $("#signUpPage").hide();
+				    load(user);	
+			    }).catch((error)=>{
+				    var errorCode = error.code;
+				    console.log(errorCode);
+			    });
+		    });
+	    });
     });
   });
 }
+  
 
 let signIn = ()=>{
   $("#start").hide();
@@ -52,11 +66,9 @@ let signIn = ()=>{
     })
     .catch((error)=>{
       var errorCode = error.code;
-      if(errorCode=="auth/user-not-found"){
-        //$("#signUpPage").prepend(`<h2>Looks like you aren't signed up yet!</h2>`)
-        $("#signInPage").append(`<h2>email or password is incorrect, please try again</h2>`);
+      //$("#signUpPage").prepend(`<h2>Looks like you aren't signed up yet!</h2>`)
+      $("#signInPage").append(`<h2>email or password is incorrect, please try again</h2>`);
       console.log(errorCode);
-      }
     });
   });
 };
@@ -72,35 +84,40 @@ let signOut = ()=>{
 let publish = function(user,msg,callback){
 	let msgref = db.ref(`tweets`);
 	tweetref = msgref.push();
-	tweetref.set({profilePic:user.photoURL,uid:user.uid,username:user.displayName,email:user.email,tweet:msg}).then(callback);
+	tweetref.set({timestamp:user.metadata.createdAt,likes:0,profilePic:user.photoURL,uid:user.uid,username:user.displayName,email:user.email,tweet:msg}).then(callback);
 };
 
 let renderTweet = ((tObj)=>{
-	$("#feed").prepend(`
-	<div id="atweet" class="card mx-auto" style="max-width: 540px;">
-  <div class="row g-0">
-    <div class="col-md-4">
-      <img src="${tObj.val().photoURL}" class="img-fluid rounded-start" alt="...">
-    </div>
-    <div class="col-md-8">
-      <div class="card-body">
-        <h5 class="card-title">${tObj.val().username}</h5>
-        <p class="card-text">${tObj.val().tweet}</p>
-        <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+	$("#feed").prepend(`  
+	  <div id="atweet" class="card mx-auto" data-uuid="${tObj.key}" style="max-width: 540px;">
+    <div class="row g-0">
+      <div class="col-md-4">
+        <img src="${tObj.val().photoURL}" class="img-fluid rounded-start" alt="IMAGE">
+      </div>
+      <div class="col-md-8">
+        <div class="card-body">
+          <h5 class="card-title">${tObj.val().username}</h5>
+          <p class="card-text">Says:  ${tObj.val().tweet}</p>
+          <p id="likes" class="card-text">Likes: ${tObj.val().likes}</p>
+	  <p id="timestamp" class="card-text">Posted: ${Date(tObj.val().timestamp)}</p>
+        </div>
       </div>
     </div>
-  </div>
-</div>`);
+  </div>`);
 });
      	
 let loadFeed = (()=>{
 	let tweetref = db.ref(`tweets`);
 	tweetref.on("child_added",ss=>{
 		renderTweet(ss);
+		$("#atweet").on("click", evt=>{
+			alert($(evt.currentTarget).attr("data-uuid"));
+		});
 	});
 });
 
 let load = ((user)=>{
+	console.log(user);
 	$("#signUpSuccess").hide();
 	$("#tweetit").show();
 	loadFeed();
@@ -114,10 +131,6 @@ let load = ((user)=>{
 		});
 	});
 
-
-	$("#atweet").on("click", evt=>{
-		alert($(evt.currentTarget).attr("id"));
-	});
 
 	$("#signOut").on("click",()=>{
 		signOut();
