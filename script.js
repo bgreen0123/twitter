@@ -62,7 +62,8 @@ let signIn = ()=>{
     firebase.auth().signInWithEmailAndPassword(email,pass).then((userCredential)=>{
         let user = userCredential.user;
 	$("#signInPage").hide();
-        load(user);
+        //load(user);
+	loadUserPage(user);
     })
     .catch((error)=>{
       var errorCode = error.code;
@@ -92,7 +93,7 @@ let renderTweet = ((tObj)=>{
 	  <div id="atweet" class="card mx-auto" data-uuid="${tObj.key}" style="max-width: 540px;">
     <div class="row g-0">
       <div class="col-md-4">
-        <img src="${tObj.val().photoURL}" class="img-fluid rounded-start" alt="IMAGE">
+        <img src="${tObj.val().profilePic}" class="img-fluid rounded-start" alt="IMAGE">
       </div>
       <div class="col-md-8">
         <div class="card-body">
@@ -115,10 +116,66 @@ let loadFeed = (()=>{
 		});
 	});
 });
+let loadUserPage = ((user)=>{
+	$("#userHomePage").show();
+	$("#userHomePage").html(`
+<nav class="navbar navbar-expandlg navbar-light bg-light">
+  <span class="navbar-brand mb-0 h1">Twitter</span>
+  <button type="button" class="btn btn-dark">Home</button>
+  <button type="button" class="btn btn-dark">Feed</button> 
+</nav>
+
+<section class="h-100 gradient-custom-2">
+  <div class="container py-5 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col col-lg-9 col-xl-7">
+        <div class="card">
+          <div class="rounded-top text-white d-flex flex-row" style="background-color: #000; height:200px;">
+            <div class="ms-4 mt-5 d-flex flex-column" style="width: 150px;height:100px;">
+              <img src="${user.photoURL}"
+                alt="Generic placeholder image" class="img-fluid img-thumbnail mt-4 mb-2"
+                style="width: 150px; z-index: 1">
+            </div>
+            <div class="ms-4" style="margin-top: 130px;">
+              <h3>${user.displayName}</h3>
+            </div>
+          </div>
+          <div class="p-4 text-black" style="background-color: #f8f9fa;">
+            <div class="d-flex justify-content-end text-center py-1">
+              <div>
+                <p class="mb-1 h5">253</p>
+                <p class="small text-muted mb-0">Tweets</p>
+              </div>
+              <div class="px-3">
+                <p class="mb-1 h5">1026</p>
+                <p class="small text-muted mb-0">Followers</p>
+              </div>
+              <div>
+                <p class="mb-1 h5">478</p>
+                <p class="small text-muted mb-0">Following</p>
+              </div>
+            </div>
+          </div>
+          <div class="card-body p-4 text-black">
+            <div class="mb-5">
+              <p class="lead fw-normal mb-1">Bio</p>
+              <div class="p-4" style="background-color: #f8f9fa;">
+                <p class="font-italic mb-1">...</p>
+              </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <p class="lead fw-normal mb-0">Tweets</p>
+              <p class="mb-0"><a href="#!" class="text-muted"></a></p>
+            </div>
+	</div>
+      </div>
+    </div>
+  </div>
+</section>`);
+});
 
 let load = ((user)=>{
 	console.log(user);
-	$("#signUpSuccess").hide();
 	$("#tweetit").show();
 	loadFeed();
 	$("#submit").on("click", function(evt){
@@ -142,7 +199,7 @@ let startPage = ()=>{
   $("#signUpPage").hide();
   $("#signInPage").hide();
   $("#loginSuccess").hide();
-  $("#signUpSuccess").hide();
+  $("#userHomePage").hide();
   $("#tweetit").hide();
   $("#start").html(`
   <h1 id="start">Twitter!</h1>

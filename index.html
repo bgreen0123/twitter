@@ -6,24 +6,42 @@
 
 <body>
 <div id="start">...</div>
+
 <div id="signUpPage">
-  <h2>Please enter a username and password</h2>
-  <input id="firstName" type="text" placeholder="First Name" />
-  <input id="lastName" type="text" placeholder="Last Name" />
-  <input id = "email" type="text" placeholder="Email"/>
-  <input id = "profilePic" type="file" accept=".png, .jpeg"/>
-  <div>
-  <input id="signUpPass" type="password" placeholder="password" />
+  <div class="d-flex flex-column">
+    <div class="d-flex justify-content-center">
+      <div class="w-25 p-3">
+        <h2>Please enter a username and password</h2>
+        <input id="firstName" type="text" placeholder="First Name" />
+        <input id="lastName" type="text" placeholder="Last Name" />
+        <input id = "email" type="text" placeholder="Email"/>
+        <input id="signUpPass" type="password" placeholder="password" />
+	<div class="input-group">
+  	  <div class="custom-file">
+    	    <input type="file" class="custom-file-input" id="profilePic">
+    	    <label class="custom-file-label" for="profilePic">Choose Profile Picture</label>
+  	  </div>
+        </div>
+        <button id="signedUp">Sign Up</button>
+      </div>
+    </div>
   </div>
-  <button id="signedUp">Sign Up</button>
 </div>
 
 <div id="signInPage">
   <h2>Please enter your username and password</h2>
   <input id="signInEmail" type="text" placeholder="Email">
   <input id="signInPass" type="password" placeholder="password">
-  <button id="signedIn">Sign In</button>
+  <div class="d-flex flex-column">
+    <div class="d-flex justify-content-center">
+      <div class="w-25 p-3">
+        <button id="signedIn">Sign In</button>
+      </div>
+    </div>
+  </div>
 </div>
+
+<div id="userHomePage">...</div>
 
 <div id="tweetit">
   <input type="text" id="tweet" placeholder="What's on your mind">
@@ -32,9 +50,6 @@
   <ul id="feed"></ul>
 </div>
 
-<div id="signUpSuccess">...</div>
-
-<script src="https://www.gstatic.com/firebasejs/9.12.1/firebase-app.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
