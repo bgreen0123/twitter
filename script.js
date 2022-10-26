@@ -88,16 +88,20 @@ let signOut = ()=>{
 
 let publish = function(user,msg,callback){
 	let msgref = db.ref("tweets");
-	db.ref(`users/${user.uid}`).get("tweets").then((value)=>{
-		alert(value.val());
-	});
 	tweetref = msgref.push();
 	tweetref.set({timestamp:user.metadata.createdAt,likes:0,profilePic:user.photoURL,uid:user.uid,username:user.displayName,email:user.email,tweet:msg}).then(callback);
-	//userref.child("tweets").set(numTweets+1);
+	updateTweetCount(user);
+};
+
+let updateTweetCount = function(user){
+	let userref = db.ref(`users/${user.uid}`);
+	userref.get().then((ss)=>{
+		userref.child("tweets").set((ss.val().tweets)+1);
+	});
 };
 
 let renderTweet = ((tObj)=>{
-	$("#feed").prepend(`  
+	$("#feed").prepend(`
 	  <div id="atweet" class="card mx-auto" data-uuid="${tObj.key}" style="max-width: 540px;">
     <div class="row g-0">
       <div class="col-md-4">
@@ -132,7 +136,6 @@ let loadFeed = (()=>{
 
 
 let load = ((user)=>{
-	console.log(user);
 	$("#userHomePage").hide();
 	$("#tweetit").show();
 	loadFeed();
@@ -161,7 +164,12 @@ let load = ((user)=>{
 
 let loadUserPage = ((user)=>{
 	$("#userHomePage").show();
-	console.log(user);
+	let userref = db.ref(`users/${user.uid}`);
+	let numTweets = 0;
+	userref.get().then((ss)=>{
+		numTweets = ss.val().tweets;
+	});
+
 	$("#userHomePage").html(`
 <nav class="navbar navbar-expandlg navbar-light bg-light">
   <span class="navbar-brand mb-0 h1">Twitter</span>
@@ -189,7 +197,7 @@ let loadUserPage = ((user)=>{
           <div class="p-4 text-black" style="background-color: #f8f9fa;">
             <div class="d-flex justify-content-end text-center py-1">
               <div>
-                <p class="mb-1 h5">253</p>
+                <p class="mb-1 h5">${numTweets}</p>
                 <p class="small text-muted mb-0">Tweets</p>
               </div>
               <div class="px-3">
