@@ -32,13 +32,15 @@ let signUp = ()=>{
 		    contentType:theFile.type,
 	        }).then(ss=>{
 		    ss.ref.getDownloadURL().then((theURL)=>{
+			    console.log(theURL);
 			    firebase.auth().createUserWithEmailAndPassword(email, newPass).then((userCredential)=>{
-			        console.log(theURL);
-        		        let user = userCredential.user;
+				let user = userCredential.user;
 		    	        user.updateProfile({
 	    			    displayName: newUser,
 	    			    photoURL: theURL,
 			        });
+				let userref = db.ref(`/users/${user.uid}`);
+				userref.set({tweets:0})
 			        $("#signUpPage").hide();
 				loadUserPage(user);	
 		    	    }).catch((error)=>{
@@ -85,9 +87,13 @@ let signOut = ()=>{
 };
 
 let publish = function(user,msg,callback){
-	let msgref = db.ref(`tweets`);
+	let msgref = db.ref("tweets");
+	db.ref(`users/${user.uid}`).get("tweets").then((value)=>{
+		alert(value.val());
+	});
 	tweetref = msgref.push();
 	tweetref.set({timestamp:user.metadata.createdAt,likes:0,profilePic:user.photoURL,uid:user.uid,username:user.displayName,email:user.email,tweet:msg}).then(callback);
+	//userref.child("tweets").set(numTweets+1);
 };
 
 let renderTweet = ((tObj)=>{
@@ -101,7 +107,7 @@ let renderTweet = ((tObj)=>{
         <div class="card-body">
           <h5 class="card-title">${tObj.val().username}</h5>
           <p class="card-text">Says:  ${tObj.val().tweet}</p>
-          <p id="likes" class="card-text">Likes: ${tObj.val().likes}</p>
+          <p class="card-text like-btn" tweetId="${tObj.key}">Likes: ${tObj.val().likes}</p>
 	  <p id="timestamp" class="card-text">Posted: ${Date(tObj.val().timestamp)}</p>
         </div>
       </div>
@@ -110,12 +116,16 @@ let renderTweet = ((tObj)=>{
 });
 
 let loadFeed = (()=>{
-	let tweetref = db.ref(`tweets`);
+	let tweetref = db.ref(`/tweets`);
 
 	tweetref.on("child_added",ss=>{
 		renderTweet(ss);
-		$("#atweet").on("click", evt=>{
-			alert($(evt.currentTarget).attr("data-uuid"));
+		$(".like-btn").off("click");
+		$(".like-btn").on("click", evt=>{
+			let tweetId = $(evt.currentTarget).attr("tweetId");
+			let numLikes = ss.val().likes;
+			tweetref.child(tweetId).child("likes").set(numLikes+1);
+			$(evt.currentTarget).html(`Likes: ${parseInt(numLikes)+1}`);
 		});
 	});
 });
