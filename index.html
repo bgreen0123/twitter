@@ -22,6 +22,7 @@
     	    <label class="custom-file-label" for="profilePic">Choose Profile Picture</label>
   	  </div>
         </div>
+	<button id="toSignIn">Sign In</button>
         <button id="signedUp">Sign Up</button>
       </div>
     </div>
@@ -36,6 +37,7 @@
     <div class="d-flex justify-content-center">
       <div class="w-25 p-3">
         <button id="signedIn">Sign In</button>
+	<button id="toSignUp">Sign Up</button>
       </div>
     </div>
   </div>
@@ -48,7 +50,8 @@
     <span class="navbar-brand mb-0 h1">Twitter</span>
     <div class="btn-group" role="group">
       <button id="fromFeedToHome" type="button" class="btn btn-dark">Home</button>
-      <button id="fromFeedTofeed" type="button" class="btn btn-dark">Feed</button> 
+      <button id="fromFeedToFeed" type="button" class="btn btn-dark">Feed</button> 
+      <button id="fromFeedToUsers" type="button" class="btn btn-dark">Users</button> 
     </div>
   </nav>
   <input type="text" id="tweet" class="pt-4" placeholder="What's on your mind">
@@ -56,6 +59,18 @@
   <button id="signOut">Sign Out</button>
   <ul id="feed"></ul>
 </div>
+
+<div id="allUsers">
+  <nav class="navbar navbar-expandlg navbar-light bg-light">
+      <span class="navbar-brand mb-0 h1">Twitter</span>
+      <div class="btn-group" role="group">
+        <button id="fromUsersToHome" type="button" class="btn btn-dark">Home</button>
+        <button id="fromUsersTofeed" type="button" class="btn btn-dark">Feed</button> 
+        <button id="fromUsersToUsers" type="button" class="btn btn-dark">Feed</button> 
+  </nav>
+  <ul id="users"></ul>
+</div>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>

@@ -40,7 +40,7 @@ let signUp = ()=>{
 	    			    photoURL: theURL,
 			        });
 				let userref = db.ref(`/users/${user.uid}`);
-				userref.set({tweets:0})
+				userref.set({tweets:0,followers:0,following:0,username:user.displayName,uid:user.uid})
 			        $("#signUpPage").hide();
 				loadUserPage(user);	
 		    	    }).catch((error)=>{
@@ -51,6 +51,11 @@ let signUp = ()=>{
 		   });
   	       });
         });
+  });
+
+  $("#toSignIn").on("click",()=>{
+	  $("#signUpPage").hide();
+	  signIn();
   });
 
 }
@@ -75,6 +80,11 @@ let signIn = ()=>{
       $("#signInPage").append(`<h2>email or password is incorrect, please try again</h2>`);
       console.log(errorCode);
     });
+  });
+
+  $("#toSignUp").on("click",()=>{
+	  $("#signInPage").hide();
+	  signUp();
   });
 };
     
@@ -136,7 +146,6 @@ let loadFeed = (()=>{
 
 
 let load = ((user)=>{
-	$("#userHomePage").hide();
 	$("#tweetit").show();
 	loadFeed();
 	$("#submit").on("click", function(evt){
@@ -159,6 +168,11 @@ let load = ((user)=>{
 		$("#tweetit").hide();
 		loadUserPage(user);
 	});
+	$("fromFeedToUsers").on("click",()=>{
+		$("#feed").html('');
+		$("#tweetit").hide();
+		loadAllUsers(user);
+	});
 });
 
 
@@ -166,8 +180,12 @@ let loadUserPage = ((user)=>{
 	$("#userHomePage").show();
 	let userref = db.ref(`users/${user.uid}`);
 	let numTweets = 0;
+	let numFollowers=0;
+	let numFollowing=0;
 	userref.get().then((ss)=>{
 		numTweets = ss.val().tweets;
+		numFollowing = ss.val().following;
+		numFollowers = ss.val().followers
 	});
 
 	$("#userHomePage").html(`
@@ -175,7 +193,8 @@ let loadUserPage = ((user)=>{
   <span class="navbar-brand mb-0 h1">Twitter</span>
   <div class="btn-group role="group>
     <button id="fromHomeToHome" type="button" class="btn btn-dark">Home</button>
-    <button id="fromHomeToFeed" type="button" class="btn btn-dark">Feed</button> 
+    <button id="fromHomeToFeed" type="button" class="btn btn-dark">Feed</button>  
+    <button id="fromHomeToUsers" type="button" class="btn btn-dark">Users</button> 
   </div>
 </nav>
 
@@ -189,6 +208,7 @@ let loadUserPage = ((user)=>{
               <img src="${user.photoURL}"
                 alt="Generic placeholder image" class="img-fluid img-thumbnail mt-4 mb-2"
                 style="width: 150px; z-index: 1">
+	      <button class="btn btn-outline-dark" data-mdb-ripple-color="dark">Follow</button>
             </div>
             <div class="ms-4" style="margin-top: 130px;">
               <h3>${user.displayName}</h3>
@@ -201,11 +221,11 @@ let loadUserPage = ((user)=>{
                 <p class="small text-muted mb-0">Tweets</p>
               </div>
               <div class="px-3">
-                <p class="mb-1 h5">1026</p>
+                <p class="mb-1 h5">${numFollowers}</p>
                 <p class="small text-muted mb-0">Followers</p>
               </div>
               <div>
-                <p class="mb-1 h5">478</p>
+                <p class="mb-1 h5">${numFollowing}</p>
                 <p class="small text-muted mb-0">Following</p>
               </div>
             </div>
@@ -228,10 +248,39 @@ let loadUserPage = ((user)=>{
 </section>`);
 
 	$("#fromHomeToFeed").on("click", ()=>{
+		$("#userHomePage").hide();
 		load(user);
+	});
+	$("#fromHomeToUsers").on("click", ()=>{
+		$("#userHomePage").hide();
+		loadAllUsers(user);
 	});
 });
 
+let loadAllUsers = (user)=>{
+	$("#allUsers").show();
+	let userref = db.ref("users");
+	userref.on("child_added", ss=>{
+		$("#users").append(`
+			<span>${ss.val().username}</span>
+			<button id="${ss.key}" class="toProfile">View Profile</button>`);
+		$(".toProfile").on("click",()=>{
+			alert(`You want to see ${ss.val().username}`);
+		});
+	});
+	$("#fromUsersTofeed").on("click", ()=>{
+		$("#allUsers").hide();
+		$("#users").html('');
+		load(user);
+	});
+	$("#fromUsersToHome").on("click", ()=>{
+		$("#allUsers").hide();
+		$("#users").html('');
+		loadUserPage(user);
+	});
+
+
+};
 
 let startPage = ()=>{
   $("#signUpPage").hide();
@@ -239,6 +288,7 @@ let startPage = ()=>{
   $("#loginSuccess").hide();
   $("#userHomePage").hide();
   $("#tweetit").hide();
+  $("#allUsers").hide();
   $("#start").html(`
   <h1 id="start">Twitter!</h1>
   <p id="ask">Sign in or sign up if you are new!</p>
